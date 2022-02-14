@@ -1,22 +1,74 @@
 library(tidyverse)
 library(ggplot2)
 
-ds = as_tibble(data.frame(
-  grp  = rep(c('A', 'B'), each = 20),
-  cond = rep(c(rep('C1', 5), rep('C2', 5)), each = 2),
-  erg  = c(rnorm(10, 10,1),rnorm(10,12,2), rnorm(10,8,2), rnorm(10,15,3))))
 
-ggplot(ds, aes(x = cond, y = erg, color = cond)) +
- geom_jitter(position = position_jitterdodge(0.2)) +
- scale_color_manual(values=c("#999999", "#E69F00", "#999999", "#E69F00")) + 
- theme_classic() + 
- ylim(0,25) +
- labs(x = 'Groups', y = paste('hallo', quote(x==10^3))) +
- #ylab('Accuracy per Bubble') +
- facet_grid(.~grp, switch = "x") +
- theme(strip.placement = "outside",
-       strip.background.x=element_rect(color = NA,  fill=NA)) + 
-  geom_text(aes(y = 26, label = "High"))
-  scale_y_continuous(breaks = c(0, 5, 10, 15, 20, 26),
-                     labels = c(0, 5, 10, 15, 20, " times 10-3"))
-# ggbreak
+fname = '../raw/Bubbles_rawData.rds'
+ds    = readRDS(file = fname) %>%
+        mutate(condition = paste(f_condition,
+                           f_emotion,
+                           sep=' '))
+
+erg = ds %>%
+  group_by(vp, group, condition) %>%
+  summarize(n = n(),
+            prz = mean(response == 'correct')*100,
+            n_scale1   = round(mean(n_scale1)),
+            efficiency = prz/n_scale1) %>%
+  mutate(group = fct_recode(group, 
+                            'control (n = 30)' = 'control',
+                            'NSSI (n = 16)' = 'experimental'))
+
+
+ggplot(erg, aes(x = condition,
+                y = prz,
+                shape = condition,
+                color = condition)) +
+  geom_jitter(position = position_jitterdodge(0.3), size = 2) +
+  stat_summary(size = 1.5, fun = 'mean',   col='red', shape = 95)+
+  scale_shape_manual(values = c(16, 17, 1, 2))+
+  scale_color_manual(values = c("grey40", "goldenrod1", "grey40", "goldenrod1")) +   theme_classic() + 
+  ylim(0, 100) +
+  labs(x = 'Groups', y = 'Accuracy (% correct)') +
+  facet_grid(.~group, switch = "x") +
+  theme(strip.placement = "outside",
+        strip.background.x = element_rect(color = NA,  fill=NA),
+        panel.spacing = unit(2, "lines"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) 
+
+ggsave('Accuracy.png')
+
+ggplot(erg, aes(x = condition,
+                y = n_scale1,
+                shape = condition,
+                color = condition)) +
+  geom_jitter(position = position_jitterdodge(0.3), size = 2) +
+  stat_summary(size = 1.5, fun = 'mean',   col='red', shape = 95)+
+  scale_shape_manual(values = c(16, 17, 1, 2))+
+  scale_color_manual(values = c("grey40", "goldenrod1", "grey40", "goldenrod1")) +   theme_classic() + 
+  ylim(20, 550) +
+  labs(x = 'Groups', y = 'Number of bubbles in first scale') +
+  facet_grid(.~group, switch = "x") +
+  theme(strip.placement = "outside",
+        strip.background.x = element_rect(color = NA,  fill=NA),
+        panel.spacing = unit(2, "lines"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) 
+
+
+ggplot(erg, aes(x = condition,
+                y = efficiency,
+                shape = condition,
+                color = condition)) +
+  geom_jitter(position = position_jitterdodge(0.2), size = 2) +
+  stat_summary(size = 1.5, fun = 'mean',   col='red', shape = 95)+
+  scale_shape_manual(values = c(16, 17, 1, 2))+
+  scale_color_manual(values = c("grey40", "goldenrod1", "grey40", "goldenrod1")) +   theme_classic() + 
+  ylim(0, 1.2) +
+  labs(x = 'Groups', y = 'Accuracy per bubble') +
+  facet_grid(.~group, switch = "x") +
+  theme(strip.placement = "outside",
+        strip.background.x = element_rect(color = NA,  fill=NA),
+        panel.spacing = unit(2, "lines"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) 
