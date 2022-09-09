@@ -19,14 +19,9 @@ erg = ds %>%
             prz = mean(response == 'correct')*100,
             n_scale1   = round(mean(n_scale1)),
             efficiency = prz/n_scale1) %>%
-  # mutate(group = fct_recode(group, 
-  #                   paste('control (n = ', tabs['control'], ')', sep = '') = 'control',
-  #                   paste('NSSI (n = ', tabs['experimental'], ')', sep = '') = 'experimental'))
  mutate(group = fct_recode(group, 
                            'control (n = 37)' = 'control',
                            'NSSI (n = 32)' = 'experimental'))
-
-
 
 
 ggplot(erg, aes(x = condition,
@@ -83,3 +78,16 @@ ggplot(erg, aes(x = condition,
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) 
 ggsave('efficiency.png')
+
+ergAlex <- erg %>% 
+           ungroup %>% 
+           select(-n) %>%
+           mutate(condition = str_replace(condition, ' ', ''),
+                  group = fct_recode(group, 
+                            'control' = 'control (n = 37)' ,
+                            'NSSI' = 'NSSI (n = 32)')) %>%
+           pivot_wider(., id_cols = c('vp', 'group'),
+                         names_from = c('condition'),
+                         values_from = c('prz', 'n_scale1', 'efficiency'))
+
+write_csv2(ergAlex, 'AlexResults.csv')
