@@ -7,6 +7,11 @@ ds    = readRDS(file = fname) %>%
         mutate(condition = paste(f_condition,
                            f_emotion,
                            sep=' '))
+tabs = ds %>% 
+       select(vp, group) %>%
+       unique() %>%
+       select(group) %>%
+       table()
 
 erg = ds %>%
   group_by(vp, group, condition) %>%
@@ -14,9 +19,14 @@ erg = ds %>%
             prz = mean(response == 'correct')*100,
             n_scale1   = round(mean(n_scale1)),
             efficiency = prz/n_scale1) %>%
-  mutate(group = fct_recode(group, 
-                            'control (n = 30)' = 'control',
-                            'NSSI (n = 16)' = 'experimental'))
+  # mutate(group = fct_recode(group, 
+  #                   paste('control (n = ', tabs['control'], ')', sep = '') = 'control',
+  #                   paste('NSSI (n = ', tabs['experimental'], ')', sep = '') = 'experimental'))
+ mutate(group = fct_recode(group, 
+                           'control (n = 37)' = 'control',
+                           'NSSI (n = 32)' = 'experimental'))
+
+
 
 
 ggplot(erg, aes(x = condition,
@@ -35,7 +45,6 @@ ggplot(erg, aes(x = condition,
         panel.spacing = unit(2, "lines"),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) 
-
 ggsave('Accuracy.png')
 
 ggplot(erg, aes(x = condition,
@@ -54,6 +63,7 @@ ggplot(erg, aes(x = condition,
         panel.spacing = unit(2, "lines"),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) 
+ggsave('n_Bubbles.png')
 
 
 ggplot(erg, aes(x = condition,
@@ -72,3 +82,4 @@ ggplot(erg, aes(x = condition,
         panel.spacing = unit(2, "lines"),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) 
+ggsave('efficiency.png')
