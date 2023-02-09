@@ -13,16 +13,17 @@ tabs = ds %>%
        select(group) %>%
        table()
 
+groupnames <- c(
+  control =  paste0("control (n = ", tabs['control'], ")" ),
+  experimental =  paste0("NSSI (n = ", tabs['experimental'], ")" )
+)
+
 erg = ds %>%
   group_by(vp, group, condition) %>%
   summarize(n = n(),
             prz = mean(response == 'correct')*100,
             n_scale1   = round(mean(n_scale1)),
-            efficiency = prz/n_scale1) %>%
- mutate(group = fct_recode(group, 
-                           'control (n = 37)' = 'control',
-                           'NSSI (n = 32)' = 'experimental'))
-
+            efficiency = prz/n_scale1) 
 
 ggplot(erg, aes(x = condition,
                 y = prz,
@@ -34,7 +35,7 @@ ggplot(erg, aes(x = condition,
   scale_color_manual(values = c("grey40", "goldenrod1", "grey40", "goldenrod1")) +   theme_classic() + 
   ylim(0, 100) +
   labs(x = 'Groups', y = 'Accuracy (% correct)') +
-  facet_grid(.~group, switch = "x") +
+  facet_grid(.~group, switch = "x", labeller = labeller(group = groupnames)) +
   theme(strip.placement = "outside",
         strip.background.x = element_rect(color = NA,  fill=NA),
         panel.spacing = unit(2, "lines"),
@@ -52,7 +53,7 @@ ggplot(erg, aes(x = condition,
   scale_color_manual(values = c("grey40", "goldenrod1", "grey40", "goldenrod1")) +   theme_classic() + 
   ylim(20, 550) +
   labs(x = 'Groups', y = 'Number of bubbles in first scale') +
-  facet_grid(.~group, switch = "x") +
+  facet_grid(.~group, switch = "x", labeller = labeller(group = groupnames)) +
   theme(strip.placement = "outside",
         strip.background.x = element_rect(color = NA,  fill=NA),
         panel.spacing = unit(2, "lines"),
@@ -71,7 +72,7 @@ ggplot(erg, aes(x = condition,
   scale_color_manual(values = c("grey40", "goldenrod1", "grey40", "goldenrod1")) +   theme_classic() + 
   ylim(0, 1.2) +
   labs(x = 'Groups', y = 'Accuracy per bubble') +
-  facet_grid(.~group, switch = "x") +
+  facet_grid(.~group, switch = "x", labeller = labeller(group = groupnames)) +
   theme(strip.placement = "outside",
         strip.background.x = element_rect(color = NA,  fill=NA),
         panel.spacing = unit(2, "lines"),
@@ -82,10 +83,7 @@ ggsave('efficiency.png')
 ergAlex <- erg %>% 
            ungroup %>% 
            select(-n) %>%
-           mutate(condition = str_replace(condition, ' ', ''),
-                  group = fct_recode(group, 
-                            'control' = 'control (n = 37)' ,
-                            'NSSI' = 'NSSI (n = 32)')) %>%
+           mutate(condition = str_replace(condition, ' ', '')) %>%
            pivot_wider(., id_cols = c('vp', 'group'),
                          names_from = c('condition'),
                          values_from = c('prz', 'n_scale1', 'efficiency'))
